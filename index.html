@@ -3,106 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M-WinX</title>
+    <title>M-WinX - الصفحة الرسمية</title>
     <style>
-        body {
-            background-color: #000;
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            width: 90%;
-            max-width: 400px;
-            background-color: #0f1113;
-            border: 2px solid #0078d4;
-            border-radius: 25px;
-            padding: 40px 20px;
-            text-align: center;
-            box-shadow: 0 0 30px rgba(0, 120, 212, 0.3);
-        }
-        h1 {
-            color: #00f2ff;
-            font-size: 50px;
-            margin: 0;
-            text-shadow: 0 0 20px rgba(0, 242, 255, 0.6);
-            letter-spacing: 2px;
-        }
-        .author {
-            color: #ffcc00;
-            font-size: 1.2rem;
-            margin: 10px 0 30px 0;
-            font-weight: bold;
-        }
-        .welcome {
-            font-size: 1rem;
-            color: #ccc;
-            line-height: 1.6;
-        }
-        .slogan {
-            font-size: 1.1rem;
-            margin: 20px 0;
-            color: #fff;
-        }
-        .info-box {
-            border: 1px dashed #333;
-            border-radius: 15px;
-            padding: 15px;
-            margin: 20px 0;
-            background-color: #161a1d;
-        }
-        .info-box h3 {
-            margin: 0 0 10px 0;
-            font-size: 1.3rem;
-        }
-        .features {
-            font-size: 0.9rem;
-            color: #00ffaa;
-        }
-        .download-btn {
-            background: linear-gradient(to right, #0082e6, #00d4ff);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 30px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 10px;
-            box-shadow: 0 5px 15px rgba(0, 130, 230, 0.4);
-            transition: 0.3s;
-        }
-        .download-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 25px rgba(0, 212, 255, 0.6);
-        }
+        body { margin: 0; padding: 20px; background-color: #000; font-family: 'Segoe UI', Tahoma, sans-serif; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .main-card { border: 2px solid #38bdf8; border-radius: 40px; background-color: #0d1117; padding: 40px 20px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 0 30px rgba(56, 189, 248, 0.3); }
+
+        .brand-name { color: #38bdf8; font-size: 4rem; font-weight: bold; text-shadow: 0 0 20px rgba(56, 189, 248, 0.8); margin-bottom: 10px; font-style: italic; }
+        
+        .dev-name { color: #fbbf24; font-size: 1.2rem; margin-bottom: 30px; font-weight: bold; }
+
+        .welcome-text { color: #8b949e; font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px; }
+        .slogan { font-size: 1.1rem; font-weight: 500; margin: 25px 0; }
+
+        .version-box { background-color: #161b22; border-radius: 20px; padding: 25px; margin: 30px 0; border: 1px solid #30363d; }
+        .version-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 15px; }
+        .features { color: #10b981; font-size: 0.9rem; font-weight: bold; }
+
+        .download-btn { background: linear-gradient(to right, #00d2ff, #3a7bd5); color: white; padding: 18px 0; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; font-size: 1.2rem; width: 100%; box-shadow: 0 10px 20px rgba(56, 189, 248, 0.2); transition: 0.3s; display: block; text-decoration: none; }
+        .download-btn:hover { transform: scale(1.03); box-shadow: 0 0 25px rgba(56, 189, 248, 0.5); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>NOVAOS</h1>
-    <p class="author">بصمة المطور العبقري: محمد</p>
-    
-    <p class="welcome">مرحباً بكم في الموقع الرسمي لشركة<br><strong>NovaOS Corporation</strong></p>
-    
-    <p class="slogan">نحن لا نعدل الأنظمة.. نحن نعيد ابتكارها.</p>
-    
-    <div class="info-box">
-        <h3>Win11 Turbo</h3>
-        <p class="features">✓ خفيفة جداً ✓ بدون TPM ✓ دعم MBR/GPT</p>
+    <div class="main-card">
+        <div class="brand-name">M-WinX</div>
+        
+        <div class="dev-name">بصمة المطور العبقري: محمد</div>
+
+        <div class="welcome-text">
+            مرحباً بكم في الموقع الرسمي لشركة<br>
+            <strong>M-WinX Corporation</strong>
+        </div>
+
+        <div class="slogan">نحن لا نعدل الأنظمة.. نحن نعيد ابتكارها.</div>
+
+        <div class="version-box">
+            <div class="version-title">Win11 Turbo</div>
+            <div class="features">
+                ✓ خفيفة جداً ✓ بدون TPM ✓ دعم MBR/GPT
+            </div>
+        </div>
+
+        <a href="#" class="download-btn">🚀 تحميل النظام (نسخة الامتياز)</a>
     </div>
-    
-    <a href="win11_turbo_edition.iso" download class="download-btn">
-        تحميل النظام (نسخة الامتياز) 🚀
-    </a>
-</div>
 
 </body>
 </html>

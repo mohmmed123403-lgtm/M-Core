@@ -28,6 +28,8 @@
 .search-box:focus { border-color: #00c853; box-shadow: 0 0 15px rgba(0,200,83,0.3); }
 .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); font-size: 18px; }
 .mic-icon { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 18px; cursor: pointer; }
+.mic-icon.listening { animation: pulse 1.5s infinite; color: #da3633; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 .search-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #0a0a0a; border: 2px solid #00c853; border-top: none; border-radius: 0 0 20px 20px; max-height: 250px; overflow-y: auto; display: none; z-index: 999; }
 
 .shortcuts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; max-width: 450px; margin: 30px auto; }
@@ -104,7 +106,7 @@
         <h1 class="title">M-Core Browser</h1>
 
         <div class="search-container">
-            <span class="mic-icon" onclick="requestMic()">🎤</span>
+            <span class="mic-icon" id="micIcon" onclick="requestMic()">🎤</span>
             <input type="text" class="search-box" id="searchInput" placeholder="ابحث في M-Core أو اكتب عنوان..." oninput="showSearchSuggestions()" onkeypress="if(event.key==='Enter') searchGo()" onblur="setTimeout(()=>hideSearchSuggestions(), 200)">
             <span class="search-icon">🔍</span>
             <div class="search-suggestions" id="searchSuggestions"></div>
@@ -231,7 +233,7 @@
     <div id="permToast" class="toast"></div>
 
     <script>
-        const server = 'https://m-core-server.vercel.app';
+        const server = 'https://m-core-server.vercel.app/api/browse';
         const blockedSites = ['youtube.com', 'google.com', 'tiktok.com', 'facebook.com', 'github.com', 'twitter.com', 'x.com', 'instagram.com'];
         const adultSites = ['porn', 'xxx', 'sex', 'adult', 'pornhub', 'xvideos'];
 
@@ -252,14 +254,16 @@
         };
 
         let currentSettingsPage = 'main';
+        let recognition = null;
+        let isListening = false;
 
         function fixTypos(text) {
             if(localStorage.getItem('autoCorrect')!== 'false') {
                 let fixed = text.toLowerCase();
                 for(let typo in typoFixes) {
                     if(fixed.includes(typo)) {
-                        fixed = fixed.replace(typo, typoFixes);
-                        showToast('تم تصحيح: ' + typo + ' → ' + typoFixes);
+                        fixed = fixed.replace(typo, typoFixes[typo]);
+                        showToast('تم تصحيح: ' + typo + ' → ' + typoFixes[typo]);
                     }
                 }
                 return fixed;
@@ -391,12 +395,20 @@
             hideUrlSuggestions();
             hideSearchSuggestions();
 
+            // لو بحث مش رابط - افتح DuckDuckGo مباشر
+            if (!u.startsWith('http') && (!u.includes('.') || u.includes(' '))) {
+                const searchUrl = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(u);
+                addHistory(searchUrl);
+                document.getElementById('homePage').style.display = 'none';
+                document.getElementById('frame').style.display = 'block';
+                document.getElementById('urlBar').value = u;
+                document.getElementById('frame').src = searchUrl;
+                showToast('جاري البحث 🔍');
+                return;
+            }
+
             if (!u.startsWith('http')) {
-                if(!u.includes('.')) {
-                    u = 'https://www.google.com/search?q=' + encodeURIComponent(u);
-                } else {
-                    u = 'https://' + u;
-                }
+                u = 'https://' + u;
             }
 
             if(localStorage.getItem('parentalMode') === 'true') {
@@ -411,13 +423,15 @@
             document.getElementById('frame').style.display = 'block';
             document.getElementById('urlBar').value = u;
 
-            document.getElementById('frame').src = server + '/browse?url=' + encodeURIComponent(u);
+            // المواقع المحمية تفتح من السيرفر
+            if(blockedSites.some(site => u.includes(site))) {
+                document.getElementById('frame').src = server + '?url=' + encodeURIComponent(u);
+                showToast('جاري التحميل من M-Core Server...');
+            } else {
+                document.getElementById('frame').src = u;
+            }
 
             if(localStorage.getItem('speedMode') === 'true') showToast('وضع السرعة مفعل ⚡');
-
-            if(blockedSites.some(site => u.includes(site))) {
-                showToast('جاري التحميل من M-Core Server...');
-            }
         }
 
         function goHome() {
@@ -508,15 +522,57 @@
         }
 
         function requestMic() {
-            showToast('جاري طلب إذن المايكروفون 🎤');
-            navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(() => {
-                    showToast('تم السماح بالمايكروفون ✓');
-                    let perms = JSON.parse(localStorage.getItem('mcore_permissions') || '{}');
-                    perms['m-core-server.vercel.app'] = {...(perms['m-core-server.vercel.app'] || {}), mic: true };
-                    localStorage.setItem('mcore_permissions', JSON.stringify(perms));
-                })
-            .catch(() => showToast('تم رفض إذن المايكروفون'));
+            if (isListening) {
+                recognition.stop();
+                return;
+            }
+
+            if (!('webkitSpeechRecognition' in window) &&!('SpeechRecognition' in window)) {
+                showToast('المتصفح لا يدعم البحث الصوتي');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!recognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'ar-SA';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    document.getElementById('micIcon').classList.add('listening');
+                    showToast('اتكلم دلوقتي... 🎤');
+                };
+
+                recognition.onresult = (event) => {
+                    const speechResult = event.results[0][0].transcript;
+                    document.getElementById('searchInput').value = speechResult;
+                    showToast('تم: ' + speechResult);
+                    searchGo();
+                };
+
+                recognition.onerror = (event) => {
+                    if (event.error === 'not-allowed') {
+                        showToast('لازم تسمح للمايك من إعدادات الموبايل');
+                    } else {
+                        showToast('خطأ: ' + event.error);
+                    }
+                    stopListening();
+                };
+
+                recognition.onend = () => {
+                    stopListening();
+                };
+            }
+
+            recognition.start();
+        }
+
+        function stopListening() {
+            isListening = false;
+            document.getElementById('micIcon').classList.remove('listening');
         }
 
         function showToast(msg) {

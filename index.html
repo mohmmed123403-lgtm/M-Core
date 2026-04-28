@@ -220,36 +220,8 @@
 
     <script>
         const server = 'https://m-core-server.vercel.app/api/browse';
-
-function goToUrl(u) {
-    hideUrlSuggestions();
-    hideSearchSuggestions();
-
-    if (!u.startsWith('http') && !u.includes('.')) {
-        // البحث يروح للسيرفر وهو هيجيب النتائج
-        u = u; // خليه زي ما هو
-    } else if (!u.startsWith('http')) {
-        u = 'https://' + u;
-    }
-
-    if(localStorage.getItem('parentalMode') === 'true') {
-        if(adultSites.some(site => u.toLowerCase().includes(site))) {
-            showToast('تم حظر هذا الموقع بواسطة وضع الأهل 🔒');
-            return;
-        }
-    }
-
-    addHistory(u);
-    document.getElementById('homePage').style.display = 'none';
-    document.getElementById('frame').style.display = 'block';
-    document.getElementById('urlBar').value = u;
-
-    // كله يروح للسيرفر - هو هيتعامل
-    document.getElementById('frame').src = server + '?url=' + encodeURIComponent(u);
-    showToast('جاري التحميل من M-Core Server... ⚡');
-}
-        
-                    
+        const blockedSites = ['youtube.com', 'google.com', 'tiktok.com', 'facebook.com', 'github.com', 'twitter.com', 'x.com', 'instagram.com'];
+        const adultSites = ['porn', 'xxx', 'sex', 'adult', 'pornhub', 'xvideos'];
 
         const commonSearches = [
             'youtube.com', 'google.com', 'facebook.com', 'github.com', 'twitter.com',
@@ -409,19 +381,9 @@ function goToUrl(u) {
             hideUrlSuggestions();
             hideSearchSuggestions();
 
-            // لو بحث مش رابط - افتح DuckDuckGo مباشر
-            if (!u.startsWith('http') && (!u.includes('.') || u.includes(' '))) {
-                const searchUrl = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(u);
-                addHistory(u);
-                document.getElementById('homePage').style.display = 'none';
-                document.getElementById('frame').style.display = 'block';
-                document.getElementById('urlBar').value = u;
-                document.getElementById('frame').src = searchUrl;
-                showToast('جاري البحث 🔍');
-                return;
-            }
-
-            if (!u.startsWith('http')) {
+            if (!u.startsWith('http') &&!u.includes('.')) {
+                u = u;
+            } else if (!u.startsWith('http')) {
                 u = 'https://' + u;
             }
 
@@ -437,15 +399,8 @@ function goToUrl(u) {
             document.getElementById('frame').style.display = 'block';
             document.getElementById('urlBar').value = u;
 
-            // المواقع المحمية تفتح من السيرفر
-            if(blockedSites.some(site => u.includes(site))) {
-                document.getElementById('frame').src = server + '?url=' + encodeURIComponent(u);
-                showToast('جاري التحميل من M-Core Server...');
-            } else {
-                document.getElementById('frame').src = u;
-            }
-
-            if(localStorage.getItem('speedMode') === 'true') showToast('وضع السرعة مفعل ⚡');
+            document.getElementById('frame').src = server + '?url=' + encodeURIComponent(u);
+            showToast('جاري التحميل من M-Core Server... ⚡');
         }
 
         function goHome() {
@@ -511,15 +466,15 @@ function goToUrl(u) {
                         <div class="perm-site">${site}</div>
                         <div class="perm-row">
                             <span>المايكروفون</span>
-                            <span class="${perms.mic? 'perm-allowed' : 'perm-blocked'}">${perms.mic? 'مسموح ✓' : 'محظور ✗'}</span>
+                            <span class="${perms[site].mic? 'perm-allowed' : 'perm-blocked'}">${perms[site].mic? 'مسموح ✓' : 'محظور ✗'}</span>
                         </div>
                         <div class="perm-row">
                             <span>الكاميرا</span>
-                            <span class="${perms.camera? 'perm-allowed' : 'perm-blocked'}">${perms.camera? 'مسموح ✓' : 'محظور ✗'}</span>
+                            <span class="${perms[site].camera? 'perm-allowed' : 'perm-blocked'}">${perms[site].camera? 'مسموح ✓' : 'محظور ✗'}</span>
                         </div>
                         <div class="perm-row">
                             <span>الموقع الجغرافي</span>
-                            <span class="${perms.location? 'perm-allowed' : 'perm-blocked'}">${perms.location? 'مسموح ✓' : 'محظور ✗'}</span>
+                            <span class="${perms[site].location? 'perm-allowed' : 'perm-blocked'}">${perms[site].location? 'مسموح ✓' : 'محظور ✗'}</span>
                         </div>
                     `;
                     permList.appendChild(div);
@@ -608,4 +563,4 @@ function goToUrl(u) {
         }
     </script>
 </body>
-    </html>
+</html>
